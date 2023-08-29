@@ -39,14 +39,24 @@ export const signup = async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
-    await user.create({
-      fname,
-      lname,
-      phone,
-      email,
-      password: hashedPassword,
-    });
-    res.status(201).send({ message: "user created successfully" });
+    if (req.url.endsWith("/user/signup")) {
+      await user.create({
+        fname,
+        lname,
+        phone,
+        email,
+        password: hashedPassword,
+      });
+    } else {
+      await employee.create({
+        fname,
+        lname,
+        phone,
+        email,
+        password: hashedPassword,
+      });
+    }
+    res.status(201).send({ message: "account created successfully" });
   } catch (error) {
     res.status(400).send({ message: error._message });
   }
