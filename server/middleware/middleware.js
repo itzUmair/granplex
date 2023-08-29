@@ -3,3 +3,18 @@ export const logger = async (req, res, next) => {
   console.log(`${req.method} => ${req.url} @ ${requestTime}`);
   next();
 };
+
+export const authenticationMiddleware = (req, res, next) => {
+  const authCookie = req.cookies._auth;
+
+  if (req.url.endsWith("/signin") || req.url.endsWith("/signup")) {
+    next();
+    return;
+  }
+
+  if (!authCookie) {
+    return res
+      .status(401)
+      .send({ message: "You are not authorized to access the API." });
+  }
+};
