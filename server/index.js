@@ -14,9 +14,9 @@ app.use(
     credentials: true,
   })
 );
-app.use(Middlewares.logger);
-
 app.use(cookieParser());
+app.use(Middlewares.authentication);
+app.use(Middlewares.logger);
 app.use(express.json());
 app.use("/api/v1", router);
 

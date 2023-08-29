@@ -4,7 +4,7 @@ export const logger = async (req, res, next) => {
   next();
 };
 
-export const authenticationMiddleware = (req, res, next) => {
+export const authentication = (req, res, next) => {
   const authCookie = req.cookies._auth;
 
   if (req.url.endsWith("/signin") || req.url.endsWith("/signup")) {
