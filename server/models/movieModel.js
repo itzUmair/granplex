@@ -31,7 +31,7 @@ const movieSchema = new mongoose.Schema(
     screenshots: [
       {
         type: mongoose.Schema.Types.String,
-        required: true,
+        required: false,
       },
     ],
     trailer: {
