@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const employeeSchema = mongoose.Schema(
+const employeeSchema = new mongoose.Schema(
   {
     fname: {
       type: mongoose.Schema.Types.String,
@@ -32,6 +32,6 @@ const employeeSchema = mongoose.Schema(
   { collection: "employees" }
 );
 
-const user = mongoose.model("employeeSchema", employeeSchema);
+const employee = mongoose.model("employeeSchema", employeeSchema);
 
-export default user;
+export default employee;

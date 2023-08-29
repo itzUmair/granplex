@@ -12,8 +12,15 @@ export const home = async (req, res) => {
 export const signup = async (req, res) => {
   const { fname, lname, phone, email, password } = req.body;
 
-  const userWithEmail = await userModel.findOne({ email });
-  const userWithPhone = await userModel.findOne({ phone });
+  let userWithEmail, userWithPhone;
+
+  if (req.url.endsWith("/user/signup")) {
+    userWithEmail = await user.findOne({ email });
+    userWithPhone = await user.findOne({ phone });
+  } else {
+    userWithEmail = await employee.findOne({ email });
+    userWithPhone = await employee.findOne({ phone });
+  }
 
   if (userWithEmail) {
     res
@@ -32,7 +39,7 @@ export const signup = async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
-    await userModel.create({
+    await user.create({
       fname,
       lname,
       phone,
@@ -48,7 +55,13 @@ export const signup = async (req, res) => {
 export const signin = async (req, res) => {
   const { email, password } = req.body;
 
-  const userExists = await userModel.findOne({ email });
+  let userExists;
+
+  if (req.url.endsWith("/user/signin")) {
+    userExists = await user.findOne({ email });
+  } else {
+    userExists = await employee.findOne({ email });
+  }
 
   if (!userExists) {
     res.status(404).send({ message: "no account with this email exists" });

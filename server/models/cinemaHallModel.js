@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const hallSchema = mongoose.Schema(
+const hallSchema = new mongoose.Schema(
   {
     number: {
       type: mongoose.Schema.Types.Number,
