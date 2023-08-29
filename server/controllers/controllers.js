@@ -2,6 +2,7 @@ import { user, employee, booking, movie, hall } from "../models/models.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 
 dotenv.config();
 
@@ -58,7 +59,11 @@ export const signup = async (req, res) => {
     }
     res.status(201).send({ message: "account created successfully" });
   } catch (error) {
-    res.status(400).send({ message: error._message });
+    if (error instanceof mongoose.Error.ValidationError) {
+      res.status(400).send({ message: error._message });
+      return;
+    }
+    res.status(500).send({ message: "something went wrong", error });
   }
 };
 
@@ -103,4 +108,87 @@ export const signin = async (req, res) => {
   );
 
   res.status(200).send({ message: "logged in successfully", token, userData });
+};
+
+export const addMovie = async (req, res) => {
+  const {
+    name,
+    description,
+    cast,
+    releaseDate,
+    ticketPrice,
+    nowShowing,
+    screenshots,
+    trailer,
+  } = req.body;
+
+  try {
+    await movie.create({
+      name,
+      description,
+      cast,
+      releaseDate,
+      ticketPrice,
+      nowShowing,
+      screenshots,
+      trailer,
+    });
+    res.status(201).send({ message: "movie added to database successfully" });
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      res.status(400).send({ message: error._message });
+      return;
+    }
+    res.status(500).send({ message: "something went wrong", error });
+  }
+};
+
+export const deleteMovie = async (req, res) => {
+  const { movieIDString } = req.params;
+
+  const movieID = mongoose.Types.ObjectId(movieIDString);
+
+  try {
+    await movie.deleteOne({ _id: movieID });
+    res.status(200).send({ message: "movie deleted successfully" });
+  } catch (error) {
+    res.status(500).send({ message: "something went wrong", error });
+  }
+};
+
+export const updateMovie = async (req, res) => {
+  const {
+    _id,
+    name,
+    description,
+    cast,
+    releaseDate,
+    ticketPrice,
+    nowShowing,
+    screenshots,
+    trailer,
+  } = req.body;
+
+  try {
+    await movie.updateOne(
+      { _id },
+      {
+        name,
+        description,
+        cast,
+        releaseDate,
+        ticketPrice,
+        nowShowing,
+        screenshots,
+        trailer,
+      }
+    );
+    res.status(200).send({ message: "movie updated successfully" });
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      res.status(400).send({ message: error._message });
+      return;
+    }
+    res.status(500).send({ message: "something went wrong", error });
+  }
 };
