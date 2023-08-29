@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "./database/database.js";
+import router from "./routes/routes.js";
+import * as Middlewares from "./middleware/middleware.js";
 
 const app = express();
 
@@ -12,9 +14,11 @@ app.use(
     credentials: true,
   })
 );
+app.use(Middlewares.logger);
 
 app.use(cookieParser());
 app.use(express.json());
+app.use("/api/v1", router);
 
 const createServer = async () => {
   try {
