@@ -70,9 +70,9 @@ const Signin = () => {
           tokenType: "Bearer",
           authState: {...response.data.userData}
         })
-        navigate("/")
-      } catch(error) {
-        const err= error as AxiosError<ErrorResponse>
+        navigate("/admin/dashboard")
+      } catch(error: unknown) {
+        const err= error as AxiosError<unknown>
         setError(err?.response?.data?.message || "")
       } finally {
         setLoading(false)

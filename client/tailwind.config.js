@@ -8,6 +8,9 @@ export default {
         "clr-800": "#5d5d5d",
         "clr-900": "#0B3954",
       },
+      screens: {
+        "2xl": "2560px",
+      },
     },
   },
   plugins: [],
