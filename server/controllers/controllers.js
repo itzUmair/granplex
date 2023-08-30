@@ -33,7 +33,7 @@ export const signup = async (req, res) => {
   if (userWithPhone) {
     res
       .status(401)
-      .send({ message: "an account with this email already exists" });
+      .send({ message: "an account with this phone number already exists" });
     return;
   }
 

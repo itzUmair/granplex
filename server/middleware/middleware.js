@@ -11,7 +11,6 @@ export const logger = async (req, res, next) => {
 
 export const authentication = (req, res, next) => {
   const authCookie = req.cookies._auth;
-  console.log(authCookie);
 
   if (req.url.endsWith("/signin") || req.url.endsWith("/signup")) {
     next();
