@@ -139,7 +139,7 @@ const Signup = () => {
         </div>
         <div>
             <label htmlFor="phone" className="text-clr-900 block mb-2 text-sm font-medium">Phone:</label>
-            <input type="number" inputMode="numeric" ref={phoneRef} id="phone" name="phone" value={formData.phone} className="bg-white border border-clr-900 text-clr-900 text-sm rounded-lg focus:border-clr-900 outline-none block w-full p-2.5" onChange={handleChange}/> 
+            <input type="tel" inputMode="numeric" ref={phoneRef} id="phone" name="phone" value={formData.phone} pattern="[0-9]{4}-[0-9]{7}" className="bg-white border border-clr-900 text-clr-900 text-sm rounded-lg focus:border-clr-900 outline-none block w-full p-2.5" onChange={handleChange}/> 
           </div>
         <div>
           <label htmlFor="password" className="text-clr-900 block mb-1 text-xs font-medium">Password:</label>

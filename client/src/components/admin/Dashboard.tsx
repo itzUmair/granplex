@@ -2,6 +2,7 @@ import { useState } from "react"
 
 import Navbar from "./Navbar"
 import Titlebar from "./Titlebar"
+import MovieSection from "./MovieSection"
 
 const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState<string>("main")
@@ -13,7 +14,9 @@ const Dashboard = () => {
         <div className="bg-clr-900 w-40">
           <Navbar currentPage={currentPage} setCurrentPage={setCurrentPage} />
         </div>
-        <div className="flex-1" ></div>
+        <div className="flex-1 overflow-y-auto" >
+          {currentPage === "movies" && <MovieSection />}
+        </div>
       </div>
     </div>
   )

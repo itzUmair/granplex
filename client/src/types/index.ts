@@ -11,3 +11,19 @@ export type SigninFormStructure = {
   email: string,
   password: string
 }
+
+export type castStructure = {
+  name: string,
+  role: string
+}
+
+export type MovieFormStructure = {
+  name: string,
+  description: string,
+  cast: castStructure[],
+  releaseDate: Date,
+  screenshots: string[],
+  trailer: string | null,
+  ticketPrice: number,
+  nowShowing: boolean
+}
