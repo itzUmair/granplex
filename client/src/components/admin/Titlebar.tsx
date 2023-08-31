@@ -18,7 +18,7 @@ const Titlebar = () => {
   },[])
 
   return (
-    <div className="bg-clr-900 flex justify-between items-center text-clr-100 md:px-16 md:py-2">
+    <div className="bg-clr-900 flex justify-between items-center text-clr-100 md:px-8 md:py-2">
       <h1>Granplex</h1>
       <h3 className="font-bold">Admin Dashboard</h3>
       <div className="relative">
