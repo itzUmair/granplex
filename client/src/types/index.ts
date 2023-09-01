@@ -27,3 +27,13 @@ export type MovieFormStructure = {
   ticketPrice: number,
   nowShowing: boolean
 }
+
+export type UploadFileStructure = {
+  name: string,
+  size: number
+}
+
+export type BytesTrackerStructure = {
+  file: number,
+  status: "uploading" | "uploaded"
+}
