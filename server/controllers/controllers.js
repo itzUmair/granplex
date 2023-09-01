@@ -192,3 +192,14 @@ export const updateMovie = async (req, res) => {
     res.status(500).send({ message: "something went wrong", error });
   }
 };
+
+export const getAllMovies = async (req, res) => {
+  try {
+    const movies = await movie.find();
+    res
+      .status(200)
+      .send({ message: "fetched all movies successfully!", movies });
+  } catch (error) {
+    res.status(500).send({ message: "something went wrong", error });
+  }
+};
