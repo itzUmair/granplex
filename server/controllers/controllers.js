@@ -119,6 +119,7 @@ export const addMovie = async (req, res) => {
     ticketPrice,
     nowShowing,
     screenshots,
+    poster,
     trailer,
   } = req.body;
 
@@ -131,6 +132,7 @@ export const addMovie = async (req, res) => {
       ticketPrice,
       nowShowing,
       screenshots,
+      poster,
       trailer,
     });
     res.status(201).send({ message: "movie added to database successfully" });
@@ -166,6 +168,7 @@ export const updateMovie = async (req, res) => {
     ticketPrice,
     nowShowing,
     screenshots,
+    poster,
     trailer,
   } = req.body;
 
@@ -180,6 +183,7 @@ export const updateMovie = async (req, res) => {
         ticketPrice,
         nowShowing,
         screenshots,
+        poster,
         trailer,
       }
     );
