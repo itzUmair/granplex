@@ -28,12 +28,24 @@ const movieSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Date,
       required: true,
     },
-    screenshots: [
-      {
-        type: mongoose.Schema.Types.String,
-        required: false,
+    screenshots: {
+      type: [
+        {
+          type: mongoose.Schema.Types.String,
+          required: false,
+        },
+      ],
+      validate: {
+        validator: function (value) {
+          return value.length <= 5;
+        },
+        message: "Screenshots array exceeds the maximum length of 5.",
       },
-    ],
+    },
+    poster: {
+      type: mongoose.Schema.Types.String,
+      required: true,
+    },
     trailer: {
       type: mongoose.Schema.Types.String,
       required: false,
