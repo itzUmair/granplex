@@ -1,32 +1,27 @@
 import { useState, useRef } from "react";
-import { uploadBytesResumable, ref, getDownloadURL } from "firebase/storage"
+import { uploadBytesResumable, ref, getDownloadURL, deleteObject, getMetadata } from "firebase/storage"
 import { storage } from "../../firebase/firebase";
 import * as Types from "../../types"
 import CloseIcon from "../../assets/close.svg"
 import axios from "../../api/axios";
 
-const CreateMovie = ({ setIsCreatingMovie }:{ setIsCreatingMovie:React.Dispatch<React.SetStateAction<boolean>> }) => {
+const UpdateMovie = ({ setIsUpdatingMovie, movieData }:{ setIsUpdatingMovie:React.Dispatch<React.SetStateAction<boolean>>, movieData:Types.MovieFormStructure }) => {
   const [formData, setFormData] = useState<Types.MovieFormStructure>({
-    name: "",
-    description: "",
-    cast: [],
-    releaseDate: new Date(),
-    screenshots: [],
-    poster: "",
-    trailer: "",
-    ticketPrice: 500,
-    nowShowing: true
+    ...movieData
   });
 
   const [castMember, setCastMember] = useState<string>("")
   const [castMemberError, setCastMemberError] = useState<string>("");
   const [files, setFiles] = useState<Types.UploadFileStructure[]>([])
   const [poster, setPoster] = useState<Types.UploadFileStructure>()
-  const [trailer, setTrailer] = useState<Types.UploadFileStructure>()
   const [formSubmitted, setFormSubmitted] = useState<boolean>(false)
   const [isUploading, setIsUploading] = useState<boolean>(false)
   const [uploadMessages, setUploadMessages] = useState<string[]>([])
   const [uploadComplete, setUploadComplete] = useState<boolean>(false)
+  const [screenshots, setScreenshots] = useState<string[]>([...movieData.screenshots])
+  const [deletedPoster , setDeletedPoster] = useState<string>()
+  const [deletedScreenshots, setDeletedScreenshots] = useState<string[]>([])
+  const [deletedTrailer, setDeletedTrailer] = useState<string>()
   const [error, setError] = useState<string>()
 
   const nameRef = useRef<HTMLInputElement>(null)
@@ -42,7 +37,6 @@ const CreateMovie = ({ setIsCreatingMovie }:{ setIsCreatingMovie:React.Dispatch<
   
   const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>):void => {
     setCastMemberError("")
-    setError("")
     if (e.target.name === "name") {
       setFormData({...formData, name: e.target.value})
     } else if (e.target.name === "description") {
@@ -56,43 +50,20 @@ const CreateMovie = ({ setIsCreatingMovie }:{ setIsCreatingMovie:React.Dispatch<
       setFormData({...formData, ticketPrice: Number(e.target.value)})
     } else if (e.target.name === "screenshots") {
       const droppedFiles: FileList | null | undefined = screenshotRef?.current?.files
-      if (droppedFiles && droppedFiles?.length > 5) {
-        setError("You can add atmost 5 screenshots")
-        return
-      }
       if (droppedFiles && droppedFiles?.length > 0) {
         for (let i = 0; i < droppedFiles?.length; i++) {
-          if (!droppedFiles[i].name.endsWith(".jpg") && !droppedFiles[i].name.endsWith(".jpeg") && !droppedFiles[i].name.endsWith(".webp")) {
-            setError("Please provide images in .jpg, .jpeg or .webp format")
-            return
-          }
           setFiles(prevFiles => [...prevFiles, {name: droppedFiles[i].name,size: droppedFiles[i].size}])
         }
       }
     } else if (e.target.name === "poster") {
       if (posterRef?.current?.files) {
-        if (!posterRef?.current?.files[0].name.endsWith(".jpg") && !posterRef?.current?.files[0].name.endsWith(".jpeg") && !posterRef?.current?.files[0].name.endsWith(".webp")) {
-          setError("Please provide images in .jpg, .jpeg or .webp format")
-          return
-        }
         setPoster({name: posterRef?.current?.files[0].name, size: posterRef?.current?.files[0].size})
-      }
-    } else if (e.target.name === "trailer") {
-      if (trailerRef?.current?.files) {
-        if (!trailerRef.current.files[0].name.endsWith(".mp4")) {
-          setError("Please provide video in .mp4 format")
-          return
-        }
-        setTrailer({name: trailerRef?.current?.files[0].name, size: trailerRef?.current?.files[0].size})
       }
     }
   }
 
   const verifyFormData = ():boolean => {
-    if (files.length === 0) {
-      setError("Please add atleast one screenshot")
-      return false
-    } if (formData.name === "") {
+    if (formData.name === "") {
       setError("Please provide a valid movie name")
       nameRef.current?.focus()
       return false
@@ -131,6 +102,7 @@ const CreateMovie = ({ setIsCreatingMovie }:{ setIsCreatingMovie:React.Dispatch<
 
   const removeCast = (e:React.FormEvent, removedMember: Types.castStructure):void => {
     e.preventDefault()
+    if(!verifyFormData()) return
     const newCast = formData.cast.filter(member => { 
       if (removedMember.name.trimEnd().trimStart() !== member.name && removedMember.role.trimEnd().trimStart() !== member.role) {
         return member
@@ -139,83 +111,121 @@ const CreateMovie = ({ setIsCreatingMovie }:{ setIsCreatingMovie:React.Dispatch<
     setFormData({...formData, cast: newCast})
   }
 
+  const compareFiles = ():boolean => {
+    if (movieData.screenshots.length !== screenshots.length) return true;
+    for (let i = 0; i < movieData.screenshots.length; i++) {
+      if (movieData.screenshots[i] !== screenshots[i]) return true
+    }  
+    if (movieData.trailer !== formData.trailer) return true;
+    if (movieData.poster !== formData.poster) return true;
+    return false
+  }
+
+  const deleteFiles = () => {
+    const deletedScreenshotsNames = []
+    const deletedPosterName = []
+    const deletedTrailerName = []
+
+    for (let i = 0; i < deletedScreenshots.length; i++) {
+        const ssRef = ref(storage, `/${movieData.name}/screenshots/`)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!verifyFormData()) return
     setFormSubmitted(true)
     setIsUploading(true)
 
-    try {
-      const selectedFiles = screenshotRef?.current?.files;
-      if (!selectedFiles) return;
-      const uploadPromises = [];
-      let trailerUrl:string = "";
-      let posterUrl:string = "";
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
-        const storageRef = ref(storage, `/${formData.name}/screenshots/${file.name}`);
-        const uploadPromise = uploadBytesResumable(storageRef, file)
-          .then(async (fileUpload) => {
-            const downloadUrl = await getDownloadURL(fileUpload.ref);
-            setUploadMessages(prevMessages => [...prevMessages, `File: ${file.name} uploaded.`]);
-            return downloadUrl;
-          })
-          .catch((error) => {
-            setUploadMessages(prevMessage => [...prevMessage, `Error uploading ${file.name}: ${error.message}`]);
-            return null;
-          });
-        uploadPromises.push(uploadPromise);
-      }
-      
-      const selectedVideo = trailerRef?.current?.files;
-      if (selectedVideo) {
-        const trailerStorageRef = ref(storage, `/${formData.name}/trailer/${selectedVideo[0].name}`);
-        const trailerUploadPromise = uploadBytesResumable(trailerStorageRef, selectedVideo[0])
-          .then(async (trailerUpload) => {
-            trailerUrl = await getDownloadURL(trailerUpload.ref);
-            setUploadMessages(prevMessages => [...prevMessages, `File: ${selectedVideo[0].name} uploaded.`]);
-          })
-          .catch(error => {
-            setUploadMessages(prevMessage => [...prevMessage, `Error uploading ${selectedVideo[0].name}: ${error.message}`])
-            return null
-          })
-        uploadPromises.push(trailerUploadPromise)
-      }   
-      const selectedPoster = posterRef?.current?.files;
-      if (selectedPoster) {
-        const posterStorageRef = ref(storage, `/${formData.name}/poster/${selectedPoster[0].name}`);
-        const posterUploadPromise = uploadBytesResumable(posterStorageRef, selectedPoster[0])
-          .then(async (trailerUpload) => {
-            posterUrl = await getDownloadURL(trailerUpload.ref);
-            setUploadMessages(prevMessages => [...prevMessages, `File: ${selectedPoster[0].name} uploaded.`]);
-          })
-          .catch(error => {
-            setUploadMessages(prevMessage => [...prevMessage, `Error uploading ${selectedPoster[0].name}: ${error.message}`])
-            return null
-          })
-        uploadPromises.push(posterUploadPromise)
-      }   
-      
-      const urls = await Promise.all(uploadPromises);
+    if (compareFiles()) {
+      try {
+        const selectedFiles = screenshotRef?.current?.files;
+        if (!selectedFiles) return;
+        const uploadPromises = [];
+        let trailerUrl:string = "";
+        let posterUrl:string = "";
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i];
+          const storageRef = ref(storage, `/${formData.name}/screenshots/${file.name}`);
+          const uploadPromise = uploadBytesResumable(storageRef, file)
+            .then(async (fileUpload) => {
+              const downloadUrl = await getDownloadURL(fileUpload.ref);
+              setUploadMessages(prevMessages => [...prevMessages, `File: ${file.name} uploaded.`]);
+              return downloadUrl;
+            })
+            .catch((error) => {
+              setUploadMessages(prevMessage => [...prevMessage, `Error uploading ${file.name}: ${error.message}`]);
+              return null;
+            });
+          uploadPromises.push(uploadPromise);
+        }
+        
+        const selectedVideo = trailerRef?.current?.files;
+        if (selectedVideo) {
+          const trailerStorageRef = ref(storage, `/${formData.name}/trailer/${selectedVideo[0].name}`);
+          const trailerUploadPromise = uploadBytesResumable(trailerStorageRef, selectedVideo[0])
+            .then(async (trailerUpload) => {
+              trailerUrl = await getDownloadURL(trailerUpload.ref);
+              setUploadMessages(prevMessages => [...prevMessages, `File: ${selectedVideo[0].name} uploaded.`]);
+            })
+            .catch(error => {
+              setUploadMessages(prevMessage => [...prevMessage, `Error uploading ${selectedVideo[0].name}: ${error.message}`])
+              return null
+            })
+          uploadPromises.push(trailerUploadPromise)
+        }
 
+        const selectedPoster = posterRef?.current?.files;
+        if (selectedPoster) {
+          const posterStorageRef = ref(storage, `/${formData.name}/poster/${selectedPoster[0].name}`);
+          const posterUploadPromise = uploadBytesResumable(posterStorageRef, selectedPoster[0])
+            .then(async (trailerUpload) => {
+              posterUrl = await getDownloadURL(trailerUpload.ref);
+              setUploadMessages(prevMessages => [...prevMessages, `File: ${selectedPoster[0].name} uploaded.`]);
+            })
+            .catch(error => {
+              setUploadMessages(prevMessage => [...prevMessage, `Error uploading ${selectedPoster[0].name}: ${error.message}`])
+              return null
+            })
+          uploadPromises.push(posterUploadPromise)
+        }   
+        
+          const urls = await Promise.all(uploadPromises);
+          setUploadMessages(prevMessages => [...prevMessages, "Adding movie to database."]);
+          const updatedFormData = { ...formData, screenshots: urls, trailer: trailerUrl, poster: posterUrl };
+          await axios.post("/movie/update", updatedFormData);
+          setUploadComplete(true)
+        } catch (error) {
+          setError(error as string)
+          setFormSubmitted(false)
+          setUploadComplete(true)
+        } finally {
+          setUploadComplete(true)
+        }
+      }
       setUploadMessages(prevMessages => [...prevMessages, "Adding movie to database."]);
-      const updatedFormData = { ...formData, screenshots: urls, trailer: trailerUrl, poster: posterUrl };
-      await axios.post("/movie/add", updatedFormData);
-      setUploadComplete(true)
-    } catch (error) {
-      setError(error as string)
-      setFormSubmitted(false)
-      setUploadComplete(true)
-    } finally {
-      setUploadComplete(true)
-    }
+      try {
+        await axios.post("/movie/update", formData);
+        setUploadComplete(true)
+      }
+      catch (error) {
+        setFormSubmitted(false)
+        setUploadComplete(true)
+      } finally {
+        setUploadComplete(true)
+      }
   };
+
+  const updateScreenshots = (removedScreenshot: string) => {
+    const newScreenshots = screenshots.filter(screenshot => screenshot !== removedScreenshot)
+    setScreenshots([...newScreenshots])
+    setDeletedScreenshots(prevDeletedSS => [...prevDeletedSS, removedScreenshot])
+  }
   
 
   return (
     <div className="absolute w-1/2 left-1/2 -translate-x-1/2 bg-clr-100/50 backdrop-blur-md p-6 shadow-lg shadow-black/50">
       {!formSubmitted && <>
-      <div className="flex justify-between items-center"><p className="text-clr-900 font-bold text-lg">Add new movie</p><button onClick={() => setIsCreatingMovie(false)} disabled={formSubmitted}><img src={CloseIcon} alt="close" className="w-6 h-6" /></button></div>
+      <div className="flex justify-between items-center"><p className="text-clr-900 font-bold text-lg">Add new movie</p><button onClick={() => setIsUpdatingMovie(false)} disabled={formSubmitted}><img src={CloseIcon} alt="close" className="w-6 h-6" /></button></div>
       <form className="w-full flex flex-col gap-y-2">
         <div>
           <label htmlFor="name" className="text-clr-900 block mb-2 text-sm font-medium ">Name:</label>
@@ -240,22 +250,27 @@ const CreateMovie = ({ setIsCreatingMovie }:{ setIsCreatingMovie:React.Dispatch<
         </div>
         <div>
           <label htmlFor="screenshots" className="text-clr-900 block mb-2 text-sm font-medium ">Screenshots:</label>
-          <input type="file" multiple accept=".jpg, .jpeg, .webp" ref={screenshotRef} id="screenshots" name="screenshots" className="bg-white border border-clr-900 text-clr-900 text-sm rounded-lg focus:border-clr-900 outline-none block w-full p-2.5" onChange={handleChange} />
+          {screenshots.length < 5 && <input type="file" multiple accept=".jpg, .jpeg, .webp" ref={screenshotRef} id="screenshots" name="screenshots" className="bg-white border border-clr-900 text-clr-900 text-sm rounded-lg focus:border-clr-900 outline-none block w-full p-2.5" onChange={handleChange} />}
           {Object.keys(files) && 
             <div className="flex flex-col w-3/4">
               {files.map((file, index) => <p key={index} className="text-sm text-clr-900 flex justify-between text-left"><span><span className="font-bold">file:</span> {file.name}</span><span><span className="font-bold">size:</span> {Number((file.size/1000).toFixed(4)) < 1000 ? `${(file.size/1000 ).toFixed(2)} KB` : `${(file.size/1048576 ).toFixed(2)} MB`}</span></p>)}
             </div>
           }
+          {screenshots.map((screenshot, index) => <img key={index} src={screenshot} className=" w-40 inline m-2 cursor-pointer" onClick={() => updateScreenshots(screenshot)} />)}
+          {<p className="text-xs italic text-clr-900 font-bold text-right">Click on screenshot to delete</p>}
         </div>
         <div>
           <label htmlFor="poster" className="text-clr-900 block mb-2 text-sm font-medium ">Poster:</label>
-          <input type="file" accept=".jpeg, .jpg, .webp" ref={posterRef} id="poster" name="poster" className="bg-white border border-clr-900 text-clr-900 text-sm rounded-lg focus:border-clr-900 outline-none block w-full p-2.5" onChange={handleChange} />
+          {deletedPoster && deletedPoster?.length > 0 && <input type="file" accept=".jpeg, .jpg, .webp" ref={posterRef} id="poster" name="poster" className="bg-white border border-clr-900 text-clr-900 text-sm rounded-lg focus:border-clr-900 outline-none block w-full p-2.5" onChange={handleChange} />}
           {poster && <p className="text-sm text-clr-900 flex justify-between text-left"><span><span className="font-bold">file:</span> {poster.name}</span><span><span className="font-bold">size:</span> {Number((poster.size/1000).toFixed(4)) < 1000 ? `${(poster.size/1000 ).toFixed(2)} KB` : `${(poster.size/1048576 ).toFixed(2)} MB`}</span></p>}
+          {<img src={movieData.poster} className=" w-40 inline m-2 cursor-pointer" onClick={() => setDeletedPoster(movieData.poster)} />}
+          {<p className="text-xs italic text-clr-900 font-bold text-right">Click on poster to delete</p>}
         </div>
         <div>
           <label htmlFor="trailer" className="text-clr-900 block mb-2 text-sm font-medium ">Trailer:</label>
-          <input type="file" accept=".mp4" ref={trailerRef} id="trailer" name="trailer" className="bg-white border border-clr-900 text-clr-900 text-sm rounded-lg focus:border-clr-900 outline-none block w-full p-2.5" onChange={handleChange} />
-          {trailer && <p className="text-sm text-clr-900 flex justify-between text-left"><span><span className="font-bold">file:</span> {trailer.name}</span><span><span className="font-bold">size:</span> {Number((trailer.size/1000).toFixed(4)) < 1000 ? `${(trailer.size/1000 ).toFixed(2)} KB` : `${(trailer.size/1048576 ).toFixed(2)} MB`}</span></p>}
+          {!movieData?.trailer && <input type="file" accept=".mp4" ref={trailerRef} id="trailer" name="trailer" className="bg-white border border-clr-900 text-clr-900 text-sm rounded-lg focus:border-clr-900 outline-none block w-full p-2.5" onChange={handleChange} />}
+          {movieData?.trailer && <video src={movieData.trailer} className=" w-96 m-2 cursor-pointer" controls/>}
+          {movieData?.trailer && <p onClick={() => setDeletedTrailer(movieData.trailer || "")} className="text-xs italic text-clr-900 font-bold text-right cursor-pointer">Click here to delete trailer</p>}
         </div>
         <div>
           <label htmlFor="ticketPrice" className="text-clr-900 block mb-2 text-sm font-medium ">Ticket Price:</label>
@@ -283,7 +298,7 @@ const CreateMovie = ({ setIsCreatingMovie }:{ setIsCreatingMovie:React.Dispatch<
             setFormSubmitted(false)
             setUploadComplete(false)
             setFiles([])
-            setIsCreatingMovie(false)
+            setIsUpdatingMovie(false)
           }} className="bg-clr-900 text-clr-100 rounded-md py-2 px-4 mt-2 ">Finish</button>}
         </div>
       }
@@ -291,4 +306,4 @@ const CreateMovie = ({ setIsCreatingMovie }:{ setIsCreatingMovie:React.Dispatch<
   )
 }
 
-export default CreateMovie
+export default UpdateMovie;

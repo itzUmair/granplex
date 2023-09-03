@@ -1,0 +1,91 @@
+import { useState, useEffect } from "react"
+import * as Types from "../../types"
+import TickIcon from "../../assets/tick.svg"
+import CrossIcon from "../../assets/cross.svg"
+import axios from "../../api/axios"
+import toast, { Toaster } from "react-hot-toast"
+import DeleteConfirmation from "./DeleteConfirmation"
+import { AxiosError, AxiosResponse } from "axios"
+
+const MoviesTable = ({data, setAllMovies} : {data: Types.MovieFormStructure[], setAllMovies: React.Dispatch<React.SetStateAction<Types.MovieFormStructure[] | undefined>>}) => {
+  const [updatingNowShowing, setUpdatingNowShowing] = useState<boolean>(false)
+  const [error, setError] = useState<string>()
+  const [success, setSuccess] = useState<string>()
+  const [isDeleting, setIsDeleting] = useState<boolean>(false)
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false)
+  const [movieDeleting, setMovieDeleting] = useState({name: "", id:""})
+
+
+  const handleDelete = async (record:Types.MovieFormStructure):void => {
+    setMovieDeleting({name:record.name, id:record._id})
+    setIsDeleting(true)
+  }
+
+  useEffect(() => {
+    if (!deleteConfirmed) return
+    setIsDeleting(false)
+    const deleteMovie = async() => {
+      const deletingToast = toast.loading("Deleting...")
+      try {
+        await axios.get(`/movie/delete/${movieDeleting.id}`)
+        const updatedMovies = data.filter(movie => movie._id !== movieDeleting.id)
+        setAllMovies([...updatedMovies])
+        toast.success("Deleted successfully!", {id: deletingToast})
+      } catch(error) {
+        setError(error as string)
+        toast.error(error.message, {id: deletingToast})
+      }
+    }
+    deleteMovie()
+  }, [deleteConfirmed])
+
+  const toggleNowShowing = async (record:Types.MovieFormStructure):Promise<void> => {
+    setUpdatingNowShowing(true)
+    const loadingToast = toast.loading("Updating...")
+    try {
+      await axios.post("/movie/update", {...record, nowShowing: !record.nowShowing})
+      toast.success(`Updated ${record.name} successfully.`, {id: loadingToast})
+      const restRecords = data.filter(movie => movie.name !== record.name)
+      const updatedRecord = {...record, nowShowing: !record.nowShowing}
+      setAllMovies([updatedRecord, ...restRecords ])
+    } catch(error) {
+      toast.error(error as string, {id: loadingToast})
+    } finally {
+      setUpdatingNowShowing(false)
+    }
+  }
+
+  return (
+    <>
+    <table className="w-full border-2 border-clr-900/50">
+      <thead className="bg-clr-900">
+        <tr className="text-left text-clr-100">
+          <th className="px-2">Name</th>
+          <th className="px-2">Release Date</th>
+          <th className="px-2">Poster</th>
+          <th className="px-2">Screenshots</th>
+          <th className="px-2">Trailer</th>
+          <th className="px-2">Now showing</th>
+          <th className="px-2">{/*Actions*/}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map(record => <tr>
+          <td className="px-2">{record.name}</td>
+          <td className="px-2">{new Date(record.releaseDate).toLocaleDateString()}</td>
+          <td className="px-2">{record.screenshots.length}</td>
+          <td className="px-2">{record.poster?.length ? <img src={TickIcon} alt="Yes" className="w-6 h-6"/> : <img src={CrossIcon} alt="No" className="w-6 h-6"/>}</td>
+          <td className="px-2">{record.trailer?.length ? <img src={TickIcon} alt="Yes" className="w-6 h-6"/> : <img src={CrossIcon} alt="No" className="w-6 h-6"/>}</td>
+          <td className="px-2">{record.nowShowing ? <img src={TickIcon} alt="Yes" className="w-6 h-6"/> : <img src={CrossIcon} alt="No" className="w-6 h-6"/>}</td>
+          <button onClick={() => {handleDelete(record)}} className="text-clr-900 font-bold px-2 underline underline-offset-2">Delete</button>
+          <button onClick={() => {toggleNowShowing(record)}} className="text-clr-900 font-bold px-2 underline underline-offset-2" disabled={updatingNowShowing}>{record.nowShowing ? "Not showing" : "Showing"}</button>
+        </tr>)}
+      </tbody>
+    </table>
+    <Toaster />
+    {isDeleting && movieDeleting && <DeleteConfirmation message={movieDeleting.name} setIsDeleting={setIsDeleting} setDeleteConfirmed={setDeleteConfirmed}/>}
+    </>
+  )
+}
+
+export default MoviesTable

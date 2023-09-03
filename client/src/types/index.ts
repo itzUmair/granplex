@@ -18,11 +18,13 @@ export type castStructure = {
 }
 
 export type MovieFormStructure = {
+  _id: string,
   name: string,
   description: string,
   cast: castStructure[],
   releaseDate: Date,
   screenshots: string[],
+  poster: string,
   trailer: string | null,
   ticketPrice: number,
   nowShowing: boolean
