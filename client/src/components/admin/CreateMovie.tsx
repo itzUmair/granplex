@@ -7,6 +7,7 @@ import axios from "../../api/axios";
 
 const CreateMovie = ({ setIsCreatingMovie }:{ setIsCreatingMovie:React.Dispatch<React.SetStateAction<boolean>> }) => {
   const [formData, setFormData] = useState<Types.MovieFormStructure>({
+    _id: "",
     name: "",
     description: "",
     cast: [],

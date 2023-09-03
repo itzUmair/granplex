@@ -4,7 +4,6 @@ import CreateMovie from "./CreateMovie"
 import axios from "../../api/axios"
 import * as Types from "../../types"
 import MovieTable from "./MoviesTable"
-import UpdateMovie from "./UpdateMovie"
 
 const MovieSection = () => {
   const [isCreatingMovie, setIsCreatingMovie] = useState<boolean>(false)
