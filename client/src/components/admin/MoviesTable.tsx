@@ -35,7 +35,7 @@ const MoviesTable = ({data, setAllMovies} : {data: Types.MovieFormStructure[], s
       }
     }
     deleteMovie()
-  }, [deleteConfirmed])
+  }, [deleteConfirmed, data, movieDeleting.id, setAllMovies])
 
   const toggleNowShowing = async (record:Types.MovieFormStructure):Promise<void> => {
     setUpdatingNowShowing(true)
