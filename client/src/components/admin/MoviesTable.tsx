@@ -5,18 +5,16 @@ import CrossIcon from "../../assets/cross.svg"
 import axios from "../../api/axios"
 import toast, { Toaster } from "react-hot-toast"
 import DeleteConfirmation from "./DeleteConfirmation"
-import { AxiosError, AxiosResponse } from "axios"
+import { AxiosError } from "axios"
 
 const MoviesTable = ({data, setAllMovies} : {data: Types.MovieFormStructure[], setAllMovies: React.Dispatch<React.SetStateAction<Types.MovieFormStructure[] | undefined>>}) => {
   const [updatingNowShowing, setUpdatingNowShowing] = useState<boolean>(false)
-  const [error, setError] = useState<string>()
-  const [success, setSuccess] = useState<string>()
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [deleteConfirmed, setDeleteConfirmed] = useState(false)
   const [movieDeleting, setMovieDeleting] = useState({name: "", id:""})
 
 
-  const handleDelete = async (record:Types.MovieFormStructure):void => {
+  const handleDelete = (record:Types.MovieFormStructure):void => {
     setMovieDeleting({name:record.name, id:record._id})
     setIsDeleting(true)
   }
@@ -32,8 +30,8 @@ const MoviesTable = ({data, setAllMovies} : {data: Types.MovieFormStructure[], s
         setAllMovies([...updatedMovies])
         toast.success("Deleted successfully!", {id: deletingToast})
       } catch(error) {
-        setError(error as string)
-        toast.error(error.message, {id: deletingToast})
+        const err = error as AxiosError
+        toast.error(err.message, {id: deletingToast})
       }
     }
     deleteMovie()
@@ -66,19 +64,23 @@ const MoviesTable = ({data, setAllMovies} : {data: Types.MovieFormStructure[], s
           <th className="px-2">Screenshots</th>
           <th className="px-2">Trailer</th>
           <th className="px-2">Now showing</th>
+          <th className="px-2">Ticket (Rs./ head)</th>
           <th className="px-2">{/*Actions*/}</th>
         </tr>
       </thead>
       <tbody>
-        {data.map(record => <tr>
+        {data.map(record => <tr key={record._id}>
           <td className="px-2">{record.name}</td>
           <td className="px-2">{new Date(record.releaseDate).toLocaleDateString()}</td>
           <td className="px-2">{record.screenshots.length}</td>
           <td className="px-2">{record.poster?.length ? <img src={TickIcon} alt="Yes" className="w-6 h-6"/> : <img src={CrossIcon} alt="No" className="w-6 h-6"/>}</td>
           <td className="px-2">{record.trailer?.length ? <img src={TickIcon} alt="Yes" className="w-6 h-6"/> : <img src={CrossIcon} alt="No" className="w-6 h-6"/>}</td>
           <td className="px-2">{record.nowShowing ? <img src={TickIcon} alt="Yes" className="w-6 h-6"/> : <img src={CrossIcon} alt="No" className="w-6 h-6"/>}</td>
-          <button onClick={() => {handleDelete(record)}} className="text-clr-900 font-bold px-2 underline underline-offset-2">Delete</button>
-          <button onClick={() => {toggleNowShowing(record)}} className="text-clr-900 font-bold px-2 underline underline-offset-2" disabled={updatingNowShowing}>{record.nowShowing ? "Not showing" : "Showing"}</button>
+          <td className="px-2">{record.ticketPrice}</td>
+          <td>
+            <button onClick={() => {handleDelete(record)}} className="bg-clr-900 text-clr-100 font-bold px-2 py-1 mr-1">Delete</button>
+            <button onClick={() => {toggleNowShowing(record)}} className="bg-clr-900 text-clr-100 font-bold px-2 py-1" disabled={updatingNowShowing}>Toggle showing</button>
+          </td>
         </tr>)}
       </tbody>
     </table>
