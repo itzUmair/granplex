@@ -152,6 +152,7 @@ const CreateMovie = ({ setIsCreatingMovie }:{ setIsCreatingMovie:React.Dispatch<
       const uploadPromises = [];
       let trailerUrl:string = "";
       let posterUrl:string = "";
+      console.log("files", selectedFiles)
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
         const storageRef = ref(storage, `/${formData.name}/screenshots/${file.name}`);
@@ -200,7 +201,7 @@ const CreateMovie = ({ setIsCreatingMovie }:{ setIsCreatingMovie:React.Dispatch<
       const urls = await Promise.all(uploadPromises);
 
       setUploadMessages(prevMessages => [...prevMessages, "Adding movie to database."]);
-      const updatedFormData = { ...formData, screenshots: urls, trailer: trailerUrl, poster: posterUrl };
+      const updatedFormData = { ...formData, screenshots: urls.splice(0, urls.length-2), trailer: trailerUrl, poster: posterUrl };
       await axios.post("/movie/add", updatedFormData);
       setUploadComplete(true)
     } catch (error) {
@@ -268,10 +269,9 @@ const CreateMovie = ({ setIsCreatingMovie }:{ setIsCreatingMovie:React.Dispatch<
             setFormData({...formData, nowShowing: !formData.nowShowing})
           }} className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" onChange={handleChange} />
         </div>
-        {error && <p className="bg-red-400 text-black font-bold">{error}</p>}
+        {error && <p className="bg-red-400 text-black font-bold">{JSON.stringify(error)}</p>}
         <button onClick={e => {
           handleSubmit(e)
-          window.scrollTo({top:0, behavior: "smooth"})
         }} className={`bg-clr-900 text-clr-100 rounded-md py-2 ${formSubmitted && "bg-clr-900/60 cursor-wait"}`} disabled={formSubmitted}>Add</button>
       </form>
       </>}

@@ -5,6 +5,8 @@ import CrossIcon from "../../assets/cross.svg"
 import axios from "../../api/axios"
 import toast, { Toaster } from "react-hot-toast"
 import DeleteConfirmation from "./DeleteConfirmation"
+import { StorageReference, deleteObject, listAll, ref } from "firebase/storage"
+import { storage } from "../../firebase/firebase"
 import { AxiosError } from "axios"
 
 const MoviesTable = ({data, setAllMovies} : {data: Types.MovieFormStructure[], setAllMovies: React.Dispatch<React.SetStateAction<Types.MovieFormStructure[] | undefined>>}) => {
@@ -19,23 +21,43 @@ const MoviesTable = ({data, setAllMovies} : {data: Types.MovieFormStructure[], s
     setIsDeleting(true)
   }
 
+  const deleteFolderRecursively = async (folderRef:StorageReference) => {
+    const items = await listAll(folderRef);
+    const deleteFilePromises = items.items.map((item) => {
+      return deleteObject(item);
+    });
+  
+    const deleteFolderPromises = items.prefixes.map(async (subfolderRef) => {
+      await deleteFolderRecursively(subfolderRef);
+    });
+  
+    await Promise.all([...deleteFilePromises, ...deleteFolderPromises]);
+  };
+
+  const deleteFolder = async (folderPath:string) => {
+    const movieFolderRef = ref(storage, folderPath);
+    await deleteFolderRecursively(movieFolderRef);
+  }
+  
   useEffect(() => {
     if (!deleteConfirmed) return
     setIsDeleting(false)
     const deleteMovie = async() => {
       const deletingToast = toast.loading("Deleting...")
       try {
+        await deleteFolder(`${movieDeleting.name}/`);
         await axios.get(`/movie/delete/${movieDeleting.id}`)
         const updatedMovies = data.filter(movie => movie._id !== movieDeleting.id)
         setAllMovies([...updatedMovies])
         toast.success("Deleted successfully!", {id: deletingToast})
       } catch(error) {
+        setIsDeleting(false)
         const err = error as AxiosError
         toast.error(err.message, {id: deletingToast})
       }
     }
     deleteMovie()
-  }, [deleteConfirmed, data, movieDeleting.id, setAllMovies])
+  }, [deleteConfirmed])
 
   const toggleNowShowing = async (record:Types.MovieFormStructure):Promise<void> => {
     setUpdatingNowShowing(true)
@@ -60,8 +82,8 @@ const MoviesTable = ({data, setAllMovies} : {data: Types.MovieFormStructure[], s
         <tr className="text-left text-clr-100">
           <th className="px-2">Name</th>
           <th className="px-2">Release Date</th>
-          <th className="px-2">Poster</th>
           <th className="px-2">Screenshots</th>
+          <th className="px-2">Poster</th>
           <th className="px-2">Trailer</th>
           <th className="px-2">Now showing</th>
           <th className="px-2">Ticket (Rs./ head)</th>
