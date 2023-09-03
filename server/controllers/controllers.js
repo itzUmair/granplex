@@ -148,7 +148,7 @@ export const addMovie = async (req, res) => {
 export const deleteMovie = async (req, res) => {
   const { movieIDString } = req.params;
 
-  const movieID = mongoose.Types.ObjectId(movieIDString);
+  const movieID = new mongoose.Types.ObjectId(movieIDString);
 
   try {
     await movie.deleteOne({ _id: movieID });
