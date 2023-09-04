@@ -39,3 +39,23 @@ export type BytesTrackerStructure = {
   file: number,
   status: "uploading" | "uploaded"
 }
+
+type scheduleStructure = {
+  showTime: Date
+  movie: MovieFormStructure
+}
+
+export type HallStructure = {
+  number: number
+  seats: number
+  booked: string[]
+  schedule: scheduleStructure[]
+}
+
+export type ResponseError = {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+}
