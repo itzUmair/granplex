@@ -4,7 +4,7 @@ const bookingSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "users",
+      ref: "user",
       required: true,
     },
     bookedOn: {
@@ -32,6 +32,6 @@ const bookingSchema = new mongoose.Schema(
   { collection: "bookings" }
 );
 
-const booking = mongoose.model("bookingSchema", bookingSchema);
+const booking = mongoose.model("booking", bookingSchema);
 
 export default booking;
