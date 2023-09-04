@@ -207,3 +207,39 @@ export const getAllMovies = async (req, res) => {
     res.status(500).send({ message: "something went wrong", error });
   }
 };
+
+export const getHallsData = async (req, res) => {
+  try {
+    const halls = await hall.find().populate({
+      path: "schedule._id",
+      model: "movie",
+    });
+    res.status(200).send({ message: "fetched all halls successfully!", halls });
+  } catch (error) {
+    res.status(500).send({ message: "something went wrong", error });
+  }
+};
+
+export const createSchedule = async (req, res) => {
+  const { movieIDString, datetime, hallnumber } = req.body;
+
+  try {
+    await hall.updateOne(
+      { number: hallnumber },
+      {
+        schedule: {
+          _id: new mongoose.Types.ObjectId(movieIDString),
+          showTime: new Date(datetime),
+        },
+      }
+    );
+    res.status(200).send({ message: "movie added to schedule successfully!" });
+  } catch (error) {
+    console.log(error);
+    if (error instanceof mongoose.Error.ValidationError) {
+      res.status(400).send({ message: error._message });
+      return;
+    }
+    res.status(500).send({ message: "something went wrong", error });
+  }
+};

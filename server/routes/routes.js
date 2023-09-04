@@ -12,5 +12,7 @@ router.route("/movie/add").post(Controllers.addMovie);
 router.route("/movie/delete/:movieIDString").get(Controllers.deleteMovie);
 router.route("/movie/update").post(Controllers.updateMovie);
 router.route("/movie/all").get(Controllers.getAllMovies);
+router.route("/hall/all").get(Controllers.getHallsData);
+router.route("/hall/schedule/add").post(Controllers.createSchedule);
 
 export default router;
