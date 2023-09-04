@@ -19,7 +19,7 @@ const hallSchema = new mongoose.Schema(
     ],
     schedule: [
       {
-        _id: {
+        movie: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "movie",
           required: true,

@@ -210,10 +210,13 @@ export const getAllMovies = async (req, res) => {
 
 export const getHallsData = async (req, res) => {
   try {
-    const halls = await hall.find().populate({
-      path: "schedule._id",
-      model: "movie",
-    });
+    const halls = await hall
+      .find()
+      .populate({
+        path: "schedule.movie",
+        model: "movie",
+      })
+      .sort({ "schedule.showTime": -1 });
     res.status(200).send({ message: "fetched all halls successfully!", halls });
   } catch (error) {
     res.status(500).send({ message: "something went wrong", error });
@@ -224,18 +227,22 @@ export const createSchedule = async (req, res) => {
   const { movieIDString, datetime, hallnumber } = req.body;
 
   try {
+    const prevSchedule = await hall
+      .findOne({ number: hallnumber })
+      .select({ schedule: 1 });
+    const updatedSchedule = [
+      ...prevSchedule.schedule,
+      {
+        movie: new mongoose.Types.ObjectId(movieIDString),
+        showTime: new Date(datetime),
+      },
+    ];
     await hall.updateOne(
       { number: hallnumber },
-      {
-        schedule: {
-          _id: new mongoose.Types.ObjectId(movieIDString),
-          showTime: new Date(datetime),
-        },
-      }
+      { $set: { schedule: updatedSchedule } }
     );
     res.status(200).send({ message: "movie added to schedule successfully!" });
   } catch (error) {
-    console.log(error);
     if (error instanceof mongoose.Error.ValidationError) {
       res.status(400).send({ message: error._message });
       return;
