@@ -49,8 +49,11 @@ const MoviesTable = ({data, setAllMovies} : {data: Types.MovieFormStructure[], s
         await axios.get(`/movie/delete/${movieDeleting.id}`)
         const updatedMovies = data.filter(movie => movie._id !== movieDeleting.id)
         setAllMovies([...updatedMovies])
+        setIsDeleting(false)
         toast.success("Deleted successfully!", {id: deletingToast})
+        setDeleteConfirmed(false)
       } catch(error) {
+        setDeleteConfirmed(false)
         setIsDeleting(false)
         const err = error as AxiosError
         toast.error(err.message, {id: deletingToast})

@@ -1,10 +1,11 @@
 import * as Types from "../../types"
 
-const HallsInfo = ({ data } : { data : Types.HallStructure  }) => {
+const HallsInfo = ({ data, setSchedulingMovie } : { data : Types.HallStructure, setSchedulingMovie: React.Dispatch<React.SetStateAction<number | null>>  }) => {
   return (
     <div className="border-2 border-clr-900 rounded-md shadow-md shadow-gray-600/70 mb-8">
-      <div className="w-full bg-clr-900 text-clr-100 font-bold px-2 py-1 rounded-tl-sm rounded-tr-sm">
+      <div className="w-full bg-clr-900 text-clr-100 font-bold px-2 py-1 rounded-tl-sm rounded-tr-sm flex justify-between items-center">
         <h2>Hall number: {data.number}</h2>
+        <button onClick={() => setSchedulingMovie(data.number)} className="bg-clr-100 py-1 px-2 text-clr-900 rounded-sm">Schedule Movie</button>
       </div>
       <div className="px-2 py-1">
         <div className="flex justify-evenly w-full my-4">
@@ -14,7 +15,7 @@ const HallsInfo = ({ data } : { data : Types.HallStructure  }) => {
         </div>
         {data.schedule.length > 0 && 
           <div className="flex flex-col gap-y-4">
-            <span className="self-center text-center">
+            {/* <span className="self-center text-center">
               {new Date(data.schedule[0].showTime) <= new Date() && 
               <>
                 <h3 className="font-bold">Now Showing:</h3>
@@ -24,7 +25,7 @@ const HallsInfo = ({ data } : { data : Types.HallStructure  }) => {
                 </span>
               </>
               }
-            </span>
+            </span> */}
             {new Date(data.schedule[0].showTime) >= new Date() && <h3 className="text-center font-bold">Scheduled:</h3>}
             {data.schedule.map(schedule => 
               {

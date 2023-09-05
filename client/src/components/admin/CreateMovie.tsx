@@ -215,7 +215,7 @@ const CreateMovie = ({ setIsCreatingMovie }:{ setIsCreatingMovie:React.Dispatch<
   
 
   return (
-    <div className="absolute w-1/2 left-1/2 -translate-x-1/2 bg-clr-100/50 backdrop-blur-md p-6 shadow-lg shadow-black/50">
+    <div className="absolute w-1/2 left-1/2 -translate-x-1/2 bg-clr-100/70 backdrop-blur-md p-6 shadow-lg shadow-black/50">
       {!formSubmitted && <>
       <div className="flex justify-between items-center"><p className="text-clr-900 font-bold text-lg">Add new movie</p><button onClick={() => setIsCreatingMovie(false)} disabled={formSubmitted}><img src={CloseIcon} alt="close" className="w-6 h-6" /></button></div>
       <form className="w-full flex flex-col gap-y-2">

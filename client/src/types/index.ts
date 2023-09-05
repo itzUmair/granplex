@@ -59,3 +59,8 @@ export type ResponseError = {
     }
   }
 }
+
+export type UpdatingScheduleStructure = {
+  state: boolean,
+  hallNumber: number,
+}
