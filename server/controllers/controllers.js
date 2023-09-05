@@ -210,13 +210,11 @@ export const getAllMovies = async (req, res) => {
 
 export const getHallsData = async (req, res) => {
   try {
-    const halls = await hall
-      .find()
-      .populate({
-        path: "schedule.movie",
-        model: "movie",
-      })
-      .sort({ "schedule.showTime": -1 });
+    const halls = await hall.find().populate({
+      path: "schedule.movie",
+      model: "movie",
+    });
+
     res.status(200).send({ message: "fetched all halls successfully!", halls });
   } catch (error) {
     res.status(500).send({ message: "something went wrong", error });
