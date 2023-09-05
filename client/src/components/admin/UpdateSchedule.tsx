@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "../../api/axios";
 import CloseIcon from "../../assets/close.svg"
 import * as Types from "../../types"
-import toast, {Toaster} from "react-hot-toast"
-import { AxiosError } from "axios";
+import toast from "react-hot-toast"
 
 const UpdateSchedule = ({ hallnumber, setSchedulingMovie } : { hallnumber : number, setSchedulingMovie: React.Dispatch<React.SetStateAction<number | null>> }) => {
   const [allMovies, setAllMovies] = useState<Types.MovieFormStructure[]>([])
